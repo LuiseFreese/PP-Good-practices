@@ -40,4 +40,39 @@ Now we need to make sure that we create an Application user in all of our 4 envi
 * Select the pen icon next to **Security roles** and add the **System Administrator** role
 * Select **Save**
   
+Remember to this for all environments!
 
+
+## Create Service connections in Azure DevOps
+
+* Return to Azure DevOps, select **Project settings** --> **Pipelines** --> **Service connections**
+* Select **new service Connection**
+* Select **Power Platform**
+* Select **Application Id and secret** as authentication method
+* Obtain the **Instance URL** from your **DEV** environment:
+  * Open [make.powerapps.com](https://make.powerapps.com)
+  * Select te **DEV** environmet
+  * Select the gear icon in the top right corner
+  * Select Settengs, copy the **Instance URL**
+* Paste this value to **Server URL**
+* Paste **Tenant id**, **App id**, and **App secret** from your app registration ito the respective fields
+* Save the connection under name **DEV Service Principal**
+* Repeat this steps for **BUILD**, **TEST**, and **PROD**
+
+## Create pipeline 1
+
+Remember pipeline 1?
+
+![Build Pipelines](images/alm_pp.png)
+Objective is to export a solution from **DEV** into source control (Azure DevOps repos)
+
+* Select **Pipelines** --> **New Pipeline** --> **Use the Classic Editor**
+* Select the Source as **Azure Repos Git**, select your Project, Repository and Branch and select **continue**
+* Select **Start with empty job**
+* Select **Agent Job 1** and check **Allow Scripts to access OAuth token**
+* Add task **Power Platform Tool Installer**
+* Add task **Power Platform Export Solution**
+* As **Service Connection** select **Dev Service Principal**
+* Provide the solution name (not the displayName) and the folder for the output - select the ... menu for that. You can also use variable for that.
+* Uncheck the **Export as Managed solution** checkmark
+* 
