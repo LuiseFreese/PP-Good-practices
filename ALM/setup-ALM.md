@@ -8,9 +8,16 @@
 * Create a new organization
 * Create a new project
 * Create a repository to hold your code
-* Optional, but a good idea: clone this repo so you can work locally
-* Optional, but also a good idea: invite co-worker to the project
-* Open **Project Settings** (lower left corner) --> **Repositories** --> **Security** and select **Contribute** permissions for **Project Collection Service Accounts** and <ProjectName> Build Service <OrgName>
+* Optional, but a good idea: Clone this repo so you can work locally in VS Code
+* Optional, but also a good idea: invite co-workers to the project
+* Open **Project Settings** (lower left corner) --> **Repositories** --> **Security** and select **Contribute** permissions for both (!)
+  * **Project Collection Service Accounts**
+
+![permissions](images/alm_pp_ado_permissions2.png)
+  
+  * **<ProjectName> Build Service <OrgName>**
+
+![permissions](images/alm_pp_ado_permissions1.png)
 
 ### Create an app registration
 
@@ -30,7 +37,7 @@ If you think that you should grant API permissions for Dynamics CRM -> user_impe
 AS a first step, we need to ensure that we have all environments in place:
 
 * Open [aka.ms/ppac](https://aka.ms/ppac)
-* Create environments for DEV, BUILD, TEST, PROD - make sure all of them have a Dataverse database
+* Create environments for **DEV**, **BUILD**, **TEST**, **PROD** - make sure all of them have a Dataverse database
 
 ### Create an Application user
 
@@ -42,12 +49,12 @@ Now we need to make sure that we create an Application user in all of our 4 envi
 * Select **Application users** under **Users & permissions**
 * Select **new app users**
 * Select **add an app**
+* Select the app registration from Azure Active Directory
 * Select the default business unit
 * Select the pen icon next to **Security roles** and add the **System Administrator** role
 * Select **Save**
   
-Remember to this for all environments!
-
+Remember to do this for all environments!
 
 ### Create Service connections in Azure DevOps
 
@@ -58,14 +65,14 @@ Remember to this for all environments!
 * Obtain the **Instance URL** from your **DEV** environment:
   * Open [make.powerapps.com](https://make.powerapps.com)
   * Select te **DEV** environment
-  * Select the gear icon in the top right corner
-  * Select Settengs, copy the **Instance URL**
+  * Select the gear icon  ⚙️ in the top right corner
+  * Select **Settings**, copy the **Instance URL**
 * Paste this value to **Server URL**
 * Paste **Tenant id**, **App id**, and **App secret** from your app registration ito the respective fields
 * Save the connection under name **DEV Service Principal**
 * Repeat this steps for **BUILD**, **TEST**, and **PROD**
 
-## Create Build pipeline 1
+## Create Build pipeline 1 - Export from DEV
 
 Remember Build pipeline 1?
 
@@ -107,7 +114,7 @@ git push --set-upstream origin main
 
 * Save and queue the pipeline and wait for it to run successfully
 
-## Create Build pipeline 2
+## Create Build pipeline 2 - Build Managed Solution
 
 Now onto buiding pipeline 2
 
@@ -121,7 +128,7 @@ Objective here is to deploy the unmanaged solution to our **BUILD** environment,
   * Power Platform Tool Installer
   * Power Platform Pack Solution
   * Power Platform Import Solution
-  * Power PLatform Export Solution
+  * Power Platform Export Solution
   * Publish Artifact drop
 
 ### Power Platform Pack Solution
@@ -148,14 +155,14 @@ As a last step, we will now publish the build artifacts
 
 ![Build pipeline 2](images/alm_pp_pl2-drop.png)
 
-## Release pipeline
+## Release pipeline to TEST
 
 Now that we have our managed solution in the **BUILD** environment, we will want to release it to **TEST** or to **PROD** (depends on requirements of User Acceptance Testing)
 
 ![ALM overview](images/alm_pp.png)
 
 * Under **Pipelines**, select **Releases**
-* Under Artifacts, select your project and the source (its the Build pipeline 2) 
+* Under Artifacts, select your project and the source (its the Build pipeline 2  - Build Managed Solution)
 
 ![Release Overview](images/alm_pp-release_artifact.png)
 
@@ -168,16 +175,17 @@ Now that we have our managed solution in the **BUILD** environment, we will want
 * Create a Release
 * Deploy the Release
 
----
+## Release pipeline to PROD
+
 Create another Release pipeline for **PROD**
 
 ## Process of CI/CD
 
 The process of Continous Improvement/Continous Deployment (CI/CD) describes how we can now iterate in a secure way to improve our app, while making sure that users are not affected by changes happening in **DEV**, have the chance to exactly test in **TEST** what they will get in **PROD** and developers can feel at ease as all code is stored in source control and commits can be easily tracked.
 
-For our Build pipeline 2 we can turn on a setting **enable continous integration** which means, that everytime, we push code to our main branch this job runs and builds a Managed solution in **BUILD**.
+For our **Build pipeline 2  - Build Managed Solution** we can turn on a setting **enable continous integration** which means, that everytime, we push code to our main branch this job runs and builds a Managed solution in **BUILD**.
 
-We do push code to our main branch by letting our Build pipeline 1 run 💡 - which we trigger manually in Azure Devops. 
+We do push code to our main branch by letting our **Build pipeline 1  - Export from DEV** run 💡 - which we trigger manually in Azure Devops.
 
 ![continous integration](images/alm_pp_pl2-ci.png)
 
@@ -185,6 +193,6 @@ For the Release pipeline, there is a similar setting:
 
 ![continous integration in release](images/alm_pp-release_ci.png)
 
-Once it is enabled, it triggers automatically, if a new Build is available, aka when our Build pipeline 2 ran successfully. This means, that with these settings being switched on, we start a chain reaction everytime, we run Build pipeline 1 - and it results in a new release of a managed solution in TEST.
+Once it is enabled, it triggers automatically, if a new Build is available, aka when our **Build pipeline 2  - Build Managed Solution** ran successfully. This means, that with these settings being switched on, we start a chain reaction everytime, we run **Build pipeline 1 - Export from DEV** - and it results in a new release of a managed solution in TEST.
 
-Users can now do the user acceptance training, log experienced issues or change requests for the next release and then we can manually trigger the *Release to **PROD*** pipeline so that we export the solution to the **PROD** environment. In case of severe issues with the relase, which only get discovered during user acceptance testing, release to **PROD** will be deferred, changes to the app are being addressed in **DEV**, and then the pipelines are triggered again manually to run the entire process again.
+Users can now do the user acceptance training, log experienced issues or change requests for the next release and then we can manually trigger the **Release to PROD** pipeline so that we export the solution to the **PROD** environment. In case of severe issues with the relase, which only get discovered during user acceptance testing, release to **PROD** will be deferred, changes to the app are being addressed in **DEV**, and then the pipelines are triggered again manually to run the entire process again.

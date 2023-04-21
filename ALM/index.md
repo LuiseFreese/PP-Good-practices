@@ -1,32 +1,44 @@
 # Application Lifecycle Management for Power Platform
 
+Almost non-technical description for how we Power Platform with healthy ALM process
+
 ## Why would we care?
 
-There are several issues with a one-environment strategy, not logging all code to source contrl and not automating the build process for solutions in environments.
+Power Platform solutions are being developed and used in so-called environments.
 
-* we operate at open heart when developing solutions while users keep using them
-* we can't roll back to previous versions
-* code only exists as opaque zip files in an environment
+There are several issues with
+
+* A one-environment strategy
+* Not logging all code to source control and
+* Not automating the build process for solutions in environments:
+
+It leads to solutions being subjects to change for end-users all the time - so that they can't rely on a feature to be tested and working as planned.
+
+It also means that developers can't revert/undo changes and leads to lots of manual and chaotic ad-hoc work, which puts unneccesary stress on admins and developers:
+
+* We operate at open heart when developing solutions while users keep using them
+* We can't roll back to previous versions
+* Code only exists as opaque zip files in an environment
 
 To mitigate risks that come along with these issues, its a good idea to
 
-* log all code into source control
-* move solutions across separated environments
-* have an automated process for that
+* Log all code into source control
+* Move solutions across separated environments
+* Have an automated process for that
 
 ## How do we care?
 
 ### Basics
 
-* All components are packaged and distributed across environments using solutions
-* 2 types of solutions
-  * unmanaged:
-    * collection of references to components
-    * no restrictions on what can be added, removed, or modified
+* All Power Platform components are packaged and distributed across environments using solutions
+* There are 2 types of solutions
+  * Unmanaged:
+    * Collection of references to components
+    * No restrictions on what can be added, removed, or modified
     * recommended only during development of the soluition
-  * managed:
+  * Managed:
     * Components can't be added or removed or modified
-    * cannot be exported
+    * Cannot be exported
     * Recommended when a solution is not actively being customized
 * Source control should be your source of truth for storing and collaborating on your components
 
@@ -47,4 +59,8 @@ To mitigate risks that come along with these issues, its a good idea to
 
 ### Process of building and releasing versions
 
-Every new feature, all bug fixes are implemented in **DEV**. Once the release passed the technical tests in **DEV**, it is build in **BUILD** and then finally released to **TEST**, where endusers can try out and test the release. If they approve it, the release gets published to **PROD**. If they don't approve it, development starts again in DEV and bug fixes/features get implemented in the next sprint.
+Every new feature, all bug fixes are implemented in **DEV**. Once the release passed the technical tests in **DEV**, it is build in **BUILD** and then finally released to **TEST**, where endusers can try out and test the release. If they approve it, the release gets published to **PROD**. If they don't approve it, development starts again in **DEV** and bug fixes/features get implemented in the next sprint.
+
+### Setup instructions
+
+(pretty technical) - can be found here: [setup ALM](setup-ALM.md)
