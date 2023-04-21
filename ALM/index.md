@@ -48,4 +48,3 @@ To mitigate risks that come along with these issues, its a good idea to
 ### Process of building and releasing versions
 
 Every new feature, all bug fixes are implemented in **DEV**. Once the release passed the technical tests in **DEV**, it is build in **BUILD** and then finally released to **TEST**, where endusers can try out and test the release. If they approve it, the release gets published to **PROD**. If they don't approve it, development starts again in DEV and bug fixes/features get implemented in the next sprint.
-
