@@ -13,11 +13,11 @@
 * Open **Project Settings** (lower left corner) --> **Repositories** --> **Security** and select **Contribute** permissions for both (!)
   * **Project Collection Service Accounts**
 
-![permissions](images/alm_pp_ado_permissions2.png)
+![permissions](/images/alm_pp_ado_permissions2.png)
   
   * **<ProjectName> Build Service <OrgName>**
 
-![permissions](images/alm_pp_ado_permissions1.png)
+![permissions](/images/alm_pp_ado_permissions1.png)
 
 ### Create an app registration
 
@@ -31,6 +31,10 @@
 If you think that you should grant API permissions for Dynamics CRM -> user_impersonation, please don't be fooled. This is not necessary, as access to Dataverse exclusively handled by Security Roles. You can read more about it in this blog post:
 
 [Why your Power Platform service principal doesn't need a Dynamics user_impersonation scope](https://www.m365princess.com/blogs/2022-07-25-why-your-service-principal-doesnt-need-a-dynamics-user_impersonation-scope/)
+
+### Install Power Platform Build tools
+
+Open [Power Platform Build Tools](https://marketplace.visualstudio.com/items?itemName=microsoft-IsvExpTools.PowerPlatform-BuildTools) and install Power Platform Build Tools for Azure Devops
 
 ### Create environments
 
@@ -74,10 +78,56 @@ Remember to do this for all environments!
 
 ## Create Build pipeline 1 - Export from DEV
 
-Remember Build pipeline 1?
-
-![Build Pipelines](images/alm_pp.png)
+![Build Pipelines](/images/alm_pp.png)
 Objective is to export a solution from **DEV** into source control (Azure DevOps repos)
+
+Here is the YAML you will need:
+
+```yml
+pool:
+  name: Azure Pipelines
+variables:
+  SolutionName: '$(SolutionName)'
+
+steps:
+- task: microsoft-IsvExpTools.PowerPlatform-BuildTools.tool-installer.PowerPlatformToolInstaller@2
+  displayName: 'Power Platform Tool Installer '
+
+- task: microsoft-IsvExpTools.PowerPlatform-BuildTools.pack-solution.PowerPlatformPackSolution@2
+  displayName: 'Power Platform Pack Solution '
+  inputs:
+    SolutionSourceFolder: sourcecode
+    SolutionOutputFile: '$(Build.ArtifactStagingDirectory)\$(SolutionName).zip'
+
+- task: microsoft-IsvExpTools.PowerPlatform-BuildTools.import-solution.PowerPlatformImportSolution@2
+  displayName: 'Power Platform Import Solution '
+  inputs:
+    authenticationType: PowerPlatformSPN
+    PowerPlatformSPN: 'BUILD Service Principal'
+    SolutionInputFile: '$(Build.ArtifactStagingDirectory)\$(SolutionName).zip'
+
+- task: microsoft-IsvExpTools.PowerPlatform-BuildTools.export-solution.PowerPlatformExportSolution@2
+  displayName: 'Power Platform Export Solution - managed'
+  inputs:
+    authenticationType: PowerPlatformSPN
+    PowerPlatformSPN: 'BUILD Service Principal'
+    SolutionName: '$(SolutionName)'
+    SolutionOutputFile: '$(Build.ArtifactStagingDirectory)/$(SolutionName)_managed.zip'
+    Managed: true
+    OverwriteLocalSolution: false
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: drop'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)\'
+
+```
+
+If you want to use the classic editor, here we go:
+
+In order to use the classic editor, go to **Organization Settings** in Azure DevOps and turn the setting on.
+
+![Turn on classic editor](/images/ado-classic.png)
 
 * Select **Pipelines** --> **New Pipeline** --> **Use the Classic Editor**
 * Select the Source as **Azure Repos Git**, select your Project, Repository and Branch and select **continue**
@@ -104,7 +154,7 @@ Objective is to export a solution from **DEV** into source control (Azure DevOps
 
 ```bash
 echo commit all changes
-git config user.email “<your git email>”
+git config user.email "<your git email>"
 git config user.name "<your git user name>"
 git checkout -B main
 git add --all
@@ -116,7 +166,7 @@ git push --set-upstream origin main
 
 ## Create Build pipeline 2 - Build Managed Solution
 
-Now onto buiding pipeline 2
+Now onto building pipeline 2
 
 ![pipeline overview](images/alm_pp.png)
 
@@ -159,18 +209,18 @@ As a last step, we will now publish the build artifacts
 
 Now that we have our managed solution in the **BUILD** environment, we will want to release it to **TEST** or to **PROD** (depends on requirements of User Acceptance Testing)
 
-![ALM overview](images/alm_pp.png)
+![ALM overview](/images/alm_pp.png)
 
 * Under **Pipelines**, select **Releases**
 * Under Artifacts, select your project and the source (its the Build pipeline 2  - Build Managed Solution)
 
-![Release Overview](images/alm_pp-release_artifact.png)
+![Release Overview](/images/alm_pp-release_artifact.png)
 
 * For Stage 1, add 2 tasks
   * Power Platform Tool Installer
   * Power Platform Import Solution
 
-![Release import to TEST](images/alm_pp-release_import.png)
+![Release import to TEST](/images/alm_pp-release_import.png)
 
 * Create a Release
 * Deploy the Release
@@ -183,16 +233,16 @@ Create another Release pipeline for **PROD**
 
 The process of Continous Improvement/Continous Deployment (CI/CD) describes how we can now iterate in a secure way to improve our app, while making sure that users are not affected by changes happening in **DEV**, have the chance to exactly test in **TEST** what they will get in **PROD** and developers can feel at ease as all code is stored in source control and commits can be easily tracked.
 
-For our **Build pipeline 2  - Build Managed Solution** we can turn on a setting **enable continous integration** which means, that everytime, we push code to our main branch this job runs and builds a Managed solution in **BUILD**.
+For our **Build pipeline 2  - Build Managed Solution** we can turn on a setting **enable continous integration** which means, that every time, we push code to our main branch this job runs and builds a Managed solution in **BUILD**.
 
 We do push code to our main branch by letting our **Build pipeline 1  - Export from DEV** run 💡 - which we trigger manually in Azure Devops.
 
-![continous integration](images/alm_pp_pl2-ci.png)
+![continuos integration](/images/alm_pp_pl2-ci.png)
 
 For the Release pipeline, there is a similar setting:
 
-![continous integration in release](images/alm_pp-release_ci.png)
+![continuos integration in release](/images/alm_pp-release_ci.png)
 
-Once it is enabled, it triggers automatically, if a new Build is available, aka when our **Build pipeline 2  - Build Managed Solution** ran successfully. This means, that with these settings being switched on, we start a chain reaction everytime, we run **Build pipeline 1 - Export from DEV** - and it results in a new release of a managed solution in TEST.
+Once it is enabled, it triggers automatically, if a new Build is available, aka when our **Build pipeline 2  - Build Managed Solution** ran successfully. This means, that with these settings being switched on, we start a chain reaction every time, we run **Build pipeline 1 - Export from DEV** - and it results in a new release of a managed solution in TEST.
 
-Users can now do the user acceptance training, log experienced issues or change requests for the next release and then we can manually trigger the **Release to PROD** pipeline so that we export the solution to the **PROD** environment. In case of severe issues with the relase, which only get discovered during user acceptance testing, release to **PROD** will be deferred, changes to the app are being addressed in **DEV**, and then the pipelines are triggered again manually to run the entire process again.
+Users can now do the user acceptance training, log experienced issues or change requests for the next release and then we can manually trigger the **Release to PROD** pipeline so that we export the solution to the **PROD** environment. In case of severe issues with the release, which only get discovered during user acceptance testing, release to **PROD** will be deferred, changes to the app are being addressed in **DEV**, and then the pipelines are triggered again manually to run the entire process again.
