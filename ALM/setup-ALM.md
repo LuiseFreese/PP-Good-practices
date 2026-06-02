@@ -13,11 +13,11 @@
 * Open **Project Settings** (lower left corner) --> **Repositories** --> **Security** and select **Contribute** permissions for both (!)
   * **Project Collection Service Accounts**
 
-![permissions](/images/alm_pp_ado_permissions2.png)
+![permissions](images/alm_pp_ado_permissions2.png)
   
   * **<ProjectName> Build Service <OrgName>**
 
-![permissions](/images/alm_pp_ado_permissions1.png)
+![permissions](images/alm_pp_ado_permissions1.png)
 
 ### Create an app registration
 
@@ -78,7 +78,7 @@ Remember to do this for all environments!
 
 ## Create Build pipeline 1 - Export from DEV
 
-![Build Pipelines](/images/alm_pp.png)
+![Build Pipelines](images/alm_pp.png)
 Objective is to export a solution from **DEV** into source control (Azure DevOps repos)
 
 Here is the YAML you will need:
@@ -127,7 +127,7 @@ If you want to use the classic editor, here we go:
 
 In order to use the classic editor, go to **Organization Settings** in Azure DevOps and turn the setting on.
 
-![Turn on classic editor](/images/ado-classic.png)
+![Turn on classic editor](images/ado-classic.png)
 
 * Select **Pipelines** --> **New Pipeline** --> **Use the Classic Editor**
 * Select the Source as **Azure Repos Git**, select your Project, Repository and Branch and select **continue**
@@ -209,18 +209,18 @@ As a last step, we will now publish the build artifacts
 
 Now that we have our managed solution in the **BUILD** environment, we will want to release it to **TEST** or to **PROD** (depends on requirements of User Acceptance Testing)
 
-![ALM overview](/images/alm_pp.png)
+![ALM overview](images/alm_pp.png)
 
 * Under **Pipelines**, select **Releases**
 * Under Artifacts, select your project and the source (its the Build pipeline 2  - Build Managed Solution)
 
-![Release Overview](/images/alm_pp-release_artifact.png)
+![Release Overview](images/alm_pp-release_artifact.png)
 
 * For Stage 1, add 2 tasks
   * Power Platform Tool Installer
   * Power Platform Import Solution
 
-![Release import to TEST](/images/alm_pp-release_import.png)
+![Release import to TEST](images/alm_pp-release_import.png)
 
 * Create a Release
 * Deploy the Release
@@ -237,11 +237,11 @@ For our **Build pipeline 2  - Build Managed Solution** we can turn on a setting 
 
 We do push code to our main branch by letting our **Build pipeline 1  - Export from DEV** run 💡 - which we trigger manually in Azure Devops.
 
-![continuos integration](/images/alm_pp_pl2-ci.png)
+![continuos integration](images/alm_pp_pl2-ci.png)
 
 For the Release pipeline, there is a similar setting:
 
-![continuos integration in release](/images/alm_pp-release_ci.png)
+![continuos integration in release](images/alm_pp-release_ci.png)
 
 Once it is enabled, it triggers automatically, if a new Build is available, aka when our **Build pipeline 2  - Build Managed Solution** ran successfully. This means, that with these settings being switched on, we start a chain reaction every time, we run **Build pipeline 1 - Export from DEV** - and it results in a new release of a managed solution in TEST.
 
